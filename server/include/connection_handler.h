@@ -6,7 +6,6 @@
 #include <netinet/in.h>
 #include <openssl/crypto.h>
 
-#define PORT (1923)
 #define HTTP_OK (200)
 #define HTTP_BAD_REQUEST (400)
 #define HTTP_NOT_FOUND (404)
@@ -20,6 +19,7 @@ typedef struct http_request {
 #define EMPTY_REQ ((http_request_t) { 0 })
 
 extern SSL_CTX *ctx;
+extern unsigned short PORT;
 
 void init_sockets();
 

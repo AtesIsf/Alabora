@@ -6,6 +6,7 @@
 #include <stdlib.h>
 
 SSL_CTX *ctx = NULL;
+unsigned short PORT = 1923;
 
 void init_openssl() {
   SSL_load_error_strings();
@@ -25,7 +26,11 @@ void init_openssl() {
   }
 }
 
-int main() {
+int main(int argc, char **argv) {
+  if (argc == 2) {
+    sscanf(argv[1], "%hu", &PORT);
+  }
+
   printf("Initializing SSL...\n");
   init_openssl();
   printf("Initializing server...\n");
