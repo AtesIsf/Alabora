@@ -36,5 +36,6 @@ int main(int argc, char **argv) {
   printf("Initializing server...\n");
   init_sockets();
   printf("\nClosing server...\n");
+  SSL_CTX_free(ctx);
   return 0;
 }

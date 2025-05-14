@@ -21,15 +21,9 @@ hashbst_node_t *create_hashbst_node(const char *path, char *(*handler)(void)) {
 }
 
 hashbst_node_t *generate_hashbst() {
-  char *foo = "/foo";
-  char *ogr = "/ogr";
-  char *bar = "/foo/bar";
-  char *ats = "/foo/ats";
-
-  hashbst_node_t *head = create_hashbst_node(foo, handle_foo);
-  insert_hashbst_node(&head, ogr, handle_ogr);
-  insert_hashbst_node(&head, bar, handle_bar);
-  insert_hashbst_node(&head, ats, handle_ats);
+  hashbst_node_t *head = create_hashbst_node("/home", handle_home);
+  insert_hashbst_node(&head, "/help", handle_help);
+  insert_hashbst_node(&head, "/pagenotfound", handle_page_not_found);
 
   return head;
 }
@@ -55,6 +49,7 @@ void insert_hashbst_node(hashbst_node_t **node, const char *path, char *(*handle
 
 /*
  * Finds a node and returns its handler function. Returns NULL if it isn't found
+ * The returned pointer must be cast to char *(*)(void)!!!
  */
 
 void *find_hashbst_node(hashbst_node_t *node, const char *path) {
@@ -98,19 +93,47 @@ void free_hashbst(hashbst_node_t **root) {
  * --------------------
  */
 
-char *handle_foo() {
-  return "/foo response";
+/*
+ * Reads a file and returns the dynamically allocated string
+ * to that file's contents.
+ */
+
+char *file_to_str(const char *file_name) {
+  assert(file_name != NULL);
+
+  FILE *fp = fopen(file_name, "r");
+  assert(fp != NULL);
+
+  fseek(fp, 0, SEEK_END);
+  unsigned long file_size = ftell(fp);
+  fseek(fp, 0, SEEK_SET);
+
+  char *response = malloc(file_size + 1);
+  assert(response != NULL);
+  response[file_size] = '\0';
+
+  fread(response, file_size, 1, fp);
+
+  fclose(fp);
+  fp = NULL;
+  return response;
 }
 
-char *handle_bar() {
-  return "/foo/bar response";
+/* The return should be free()'d afterwards! */
+
+char *handle_home() {
+  return file_to_str("./pages/home.html");
 }
 
-char *handle_ogr() {
-  return "/ogr response";
+/* The return should be free()'d afterwards! */
+
+char *handle_help() {
+  return file_to_str("./pages/help.html");
 }
 
-char *handle_ats() {
-  return "/foo/ats response";
+/* The return should be free()'d afterwards! */
+
+char *handle_page_not_found() {
+  return file_to_str("./pages/page_not_found.html");
 }
 

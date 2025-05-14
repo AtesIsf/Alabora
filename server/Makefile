@@ -18,3 +18,4 @@ keygen:
 clean:
 	rm -f ./bin/*
 	rm -f server
+	rm -f vgcore.*

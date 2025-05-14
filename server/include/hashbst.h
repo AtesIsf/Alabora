@@ -20,9 +20,10 @@ void print_hashbst(hashbst_node_t *);
 
 void free_hashbst(hashbst_node_t **);
 
-char *handle_ats();
-char *handle_foo();
-char *handle_ogr();
-char *handle_bar();
+char *file_to_str(const char *);
+
+char *handle_home();
+char *handle_help();
+char *handle_page_not_found();
 
 #endif
