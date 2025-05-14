@@ -1,4 +1,5 @@
 #include "../include/hashbst.h"
+#include "../include/connection_handler.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -24,6 +25,7 @@ hashbst_node_t *generate_hashbst() {
   hashbst_node_t *head = create_hashbst_node("/home", handle_home);
   insert_hashbst_node(&head, "/help", handle_help);
   insert_hashbst_node(&head, "/pagenotfound", handle_page_not_found);
+  insert_hashbst_node(&head, "/styles.css", handle_styles);
 
   return head;
 }
@@ -95,7 +97,7 @@ void free_hashbst(hashbst_node_t **root) {
 
 /*
  * Reads a file and returns the dynamically allocated string
- * to that file's contents.
+ * to that file's contents. The return must be freed afterwards.
  */
 
 char *file_to_str(const char *file_name) {
@@ -119,21 +121,39 @@ char *file_to_str(const char *file_name) {
   return response;
 }
 
-/* The return should be free()'d afterwards! */
+char *generate_http_response(const char *file_name, const char *file_type) {
+  assert(file_name != NULL);
+
+  // "./pages/<file_name>.<file_type>" -> strlen(file_name) + 10 length str
+  int size = strlen(file_name) + strlen(file_type) + 10;
+  char *str = malloc(size);
+  str[size - 1] = '\0';
+  assert(str != NULL);
+  sprintf(str, "./pages/%s.%s", file_name, file_type);
+
+  char *body = file_to_str(str);
+  char *response = wrap_in_http(body, HTTP_OK, file_type);
+
+  free(str);
+  str = NULL;
+  free(body);
+  body = NULL;
+  return response;
+}
 
 char *handle_home() {
-  return file_to_str("./pages/home.html");
+  return generate_http_response("home", "html");
 }
-
-/* The return should be free()'d afterwards! */
 
 char *handle_help() {
-  return file_to_str("./pages/help.html");
+  return generate_http_response("help", "html");
 }
 
-/* The return should be free()'d afterwards! */
-
 char *handle_page_not_found() {
-  return file_to_str("./pages/page_not_found.html");
+  return generate_http_response("page_not_found", "html");
+}
+
+char *handle_styles() {
+  return generate_http_response("styles", "css");
 }
 
