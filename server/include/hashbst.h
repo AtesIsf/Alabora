@@ -22,8 +22,11 @@ void free_hashbst(hashbst_node_t **);
 
 char *file_to_str(const char *);
 
+char *generate_http_response(const char *, const char *);
+
 char *handle_home();
 char *handle_help();
 char *handle_page_not_found();
+char *handle_styles();
 
 #endif

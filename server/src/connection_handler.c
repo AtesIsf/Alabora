@@ -92,18 +92,18 @@ const char *get_code_string(int *code) {
  * be freed afterwards. The given code int may be modified.
  */
 
-char *wrap_in_http(const char *str, int code) {
-  assert(str != NULL);
+char *wrap_in_http(const char *str, int code, const char *file_type) {
+  assert(str != NULL && file_type != NULL);
   char *response = malloc(1024);
   assert(response != NULL);
 
   const char *code_str = get_code_string(&code);
   sprintf(response, 
           "HTTP/1.1 %d %s\r\n"
-          "Content-Type: text/html\r\n"
+          "Content-Type: text/%s\r\n"
           "Content-length: %lu\r\n\r\n"
           "%s",
-          code, code_str, strlen(str), str);
+          code, code_str, file_type, strlen(str), str);
   return response;
 }
 
@@ -133,15 +133,11 @@ void handle_connection(int fd, struct sockaddr *addr, socklen_t *len, hashbst_no
   printf("%s %s\n", req.method, req.path);
   char *(*handler)(void) = find_hashbst_node(root, req.path);
 
-  int http_code = handler == NULL ? HTTP_NOT_FOUND : HTTP_OK;
   handler = handler == NULL ? (char *(*)(void)) find_hashbst_node(root, "/pagenotfound") : handler;
 
-  char *response_body = handler();
-  char *response = wrap_in_http(response_body, http_code);
+  char *response = handler();
   SSL_write(ssl, response, strlen(response));
 
-  free(response_body);
-  response_body = NULL;
   close(handler_fd);
   SSL_shutdown(ssl);
   SSL_free(ssl);

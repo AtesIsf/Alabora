@@ -27,7 +27,7 @@ http_request_t parse_request(char *);
 
 const char *get_code_string(int *code);
 
-char *wrap_in_http(const char *, int);
+char *wrap_in_http(const char *, int, const char*);
 
 void handle_connection(int fd, struct sockaddr*, socklen_t *, hashbst_node_t *);
 
