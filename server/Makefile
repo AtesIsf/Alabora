@@ -1,13 +1,13 @@
 CC = gcc
-CFLAGS = -O2 -std=c23 -Wall -Werror -lssl -lcrypto
+CFLAGS = -O2 -std=c23 -Wall -Werror -lssl -lcrypto -fPIC
 BIN_DIR = ./bin
 SRC_DIR = ./src
-OBJ = $(BIN_DIR)/connection_handler.o $(BIN_DIR)/hashbst.o
+OBJ = $(BIN_DIR)/connection_handler.o $(BIN_DIR)/hashbst.o $(BIN_DIR)/game.o
 
 $(BIN_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-.PHONY: server clean
+.PHONY: server keygen clean
 
 server: main.c $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS)
