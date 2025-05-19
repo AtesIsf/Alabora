@@ -49,29 +49,70 @@ void *ehm_get(entity_hashmap_t *ehm, unsigned short id) {
   return addr;
 }
 
-/* Returns NULL if the given id is not found!!! */
+/* 
+ * Returns the entity of the removed element.
+ * Returns NULL if the given id is not found!!!
+ */
 
 void *ehm_remove(entity_hashmap_t *ehm, unsigned short id) {
   int index = id % HASH_ARR_LEN;
 
-  hash_element_t *addr = ehm->elements[index];
+  hash_element_t *curr = ehm->elements[index];
   // Case 1: The first element of the linked list matches
-  if (addr->id == id) {
-    ehm->elements[index] = addr->next;
-    addr->next = NULL;
-    void *entity = addr->entity;
-    free(addr);
-    addr = NULL;
+  if (curr->id == id) {
+    ehm->elements[index] = curr->next;
+    curr->next = NULL;
+    void *entity = curr->entity;
+    free(curr);
+    curr = NULL;
     return entity;
   }
 
   // Case 2: Another element matches
-  // TODO
+  void *entity = NULL;
+  hash_element_t *prev = NULL;
+  while (curr != NULL) {
+    if (curr->id == id) {
+      prev->next = curr->next;
+      curr->next = NULL;
+      entity = curr->entity;
+      curr->entity = NULL;
+      free(curr);
+      curr = NULL;
+      break;
+    }
+    prev = curr;
+    curr = curr->next;
+  }
 
-  return NULL;
+  return entity;
+}
+
+/*
+ * Helper function to free the linked lists of entity hashmaps.
+ */
+
+void ehm_free_helper(hash_element_t *element) {
+  if (element == NULL) return;
+
+  hash_element_t *next = element->next;
+  element->next = NULL;
+  element->entity = NULL;
+  element->id = 0;
+  free(element);
+  ehm_free_helper(next);
 }
 
 /* Does not free the data associated with the hashmap!!! */
 
-void ehm_free(entity_hashmap_t *);
+void ehm_free(entity_hashmap_t *ehm) {
+  assert(ehm != NULL);
+
+  for (int i = 0; i < HASH_ARR_LEN; i++) {
+    hash_element_t *curr = ehm->elements[i];
+    if (curr == NULL) continue;
+    ehm_free_helper(curr);
+    curr = NULL;
+  }
+} 
 
