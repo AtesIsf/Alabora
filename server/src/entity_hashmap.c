@@ -1,4 +1,4 @@
-#include "entity_hashmap.h"
+#include "../include/entity_hashmap.h"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -114,5 +114,6 @@ void ehm_free(entity_hashmap_t *ehm) {
     ehm_free_helper(curr);
     curr = NULL;
   }
+  free(ehm);
 } 
 

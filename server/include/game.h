@@ -75,7 +75,7 @@ typedef struct game {
   player_t players[N_PLAYERS];
   grid_t grid[N_ROWS][N_COLS];
   missle_node_t *head;
-  entity_hashmap_t ehm;
+  entity_hashmap_t *ehm;
 } game_t;
 
 game_t init_game();

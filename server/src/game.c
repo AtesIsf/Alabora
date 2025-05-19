@@ -25,6 +25,8 @@ game_t init_game() {
     for (int j = N_COLS - 20; j < N_COLS; j++)
       g.grid[i][j].depth = 0;
 
+  g.ehm = init_entity_hashmap();
+
   return g;
 }
 
@@ -84,13 +86,39 @@ void assign_ships(game_t *game, int player_num, const char *ship_str) {
 }
 
 /*
- * Orders are in format (without <>):
+ * Move orders are in format (without <>):
  * <id>:<new_x>;<new_y>
  * Ship movement takes precedence over missle movement.
+ * Missle create orders are in the form (without <>):
+ * <shooter_id>-<target_x>;<target_y>
  */
 
 void update(game_t *game, const char *p1_orders, const char *p2_orders) {
-  // TODO: CREATE ID-ENTITY HASHMAP FOR EASY ACCESS TO ENTITIES
+  assert(game != NULL && p1_orders != NULL && p2_orders != NULL);
+  int status = 3;
+  // P1 move orders
+  while (status == 3) {
+    int id = 0, new_x = 0, new_y = 0;
+    status = sscanf(p1_orders, "%d:%d;%d", &id, &new_x, &new_y);
+    ship_t *ship = ehm_get(game->ehm, id);
+    assert(ship != NULL);
+    if (game->grid[new_x][new_y].ship != NULL) continue;
+    ship->pos->ship = NULL;
+    game->grid[new_x][new_y].ship = ship;
+  }
+}
+
+/*
+ * Helper to free the missle linked list of a game instance.
+ */
+
+void free_game_missles(missle_node_t *node) {
+  missle_node_t *next = node->next;
+  node->next = NULL;
+  node->prev = NULL;
+  free(node);
+  node = NULL;
+  free_game_missles(next);
 }
 
 void free_game(game_t *game) {
@@ -98,5 +126,9 @@ void free_game(game_t *game) {
     free(game->players[i].ships);
     game->players[i].ships = NULL;
   }
+  ehm_free(game->ehm);
+  game->ehm = NULL;
+  free_game_missles(game->head);
+  game->head = NULL;
 }
 
