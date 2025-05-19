@@ -83,9 +83,78 @@ void assign_ships(game_t *game, int player_num, const char *ship_str) {
     }; 
     game->grid[start_x + i][start_y].ship = &game->players[index].ships[i];
   }
+
+  for (int i = 0; i < N_ROWS; i++) {
+    for (int j = 0; j < N_COLS; j++) {
+      game->grid[i][j].x = i;
+      game->grid[i][j].y = j;
+    }
+  }
 }
 
-/*
+void missle_free(game_t *game, missle_t *missle) {
+  grid_t *pos = missle->pos;
+  assert(pos->missle == missle);
+  pos->missle = NULL;
+  missle_node_t *node = game->head;
+  while (node != NULL) {
+    if (node->missle != missle)
+      node = node->next;
+  }
+  assert(node != NULL);
+  if (node->prev != NULL) {
+    node->prev->next = node->next;
+  }
+  if (node->next != NULL) {
+    node->next->prev = node->prev;
+  }
+  node->prev = NULL;
+  node->next = NULL;
+  node->missle = NULL;
+  free(missle);
+  free(node);
+  missle = NULL;
+  node = NULL;
+}
+
+void add_missle(game_t *game, int shooter_id, int target_x, int target_y) {
+  assert(game != NULL && shooter_id >= 0);
+  assert(target_x >= 0 && target_x < N_ROWS);
+  assert(target_y >= 0 && target_y < N_COLS);
+
+  grid_t *spawn_pos = ehm_get(game->ehm, shooter_id);
+  int delta_x = target_x - spawn_pos->x > 0 ? 1 : - 1;
+  int delta_y = target_y - spawn_pos->y > 0 ? 1 : - 1;
+  // Don't do all that computation if there has been a collision
+  if (&game->grid[spawn_pos->x + delta_x][spawn_pos->y + delta_y] != NULL) {
+    missle_free(game, game->grid[spawn_pos->x + delta_x][spawn_pos->y + delta_y].missle);
+    game->grid[spawn_pos->x + delta_x][spawn_pos->y + delta_y].missle = NULL;
+    return;
+  }
+
+  missle_t *new_missle = malloc(sizeof(missle_t));
+  assert(new_missle != NULL);
+  
+  new_missle->pos = &game->grid[spawn_pos->x + delta_x][spawn_pos->y + delta_y];
+  new_missle->id = global_id_counter++;
+  new_missle->target = &game->grid[target_x][target_y];
+  assert(spawn_pos != NULL);
+
+  game->grid[spawn_pos->x + delta_x][spawn_pos->y + delta_y].missle = new_missle;
+
+  missle_node_t *node = malloc(sizeof(missle_node_t));
+  assert(node != NULL);
+  node->missle = new_missle;
+  node->prev = NULL;
+  node->next = game->head;
+  if (game->head != NULL) {
+    game->head->prev = node;
+  }
+  game->head = node;
+}
+
+/* 
+ * Helper function for update()
  * Move orders are in format (without <>):
  * <id>:<new_x>;<new_y>
  * Ship movement takes precedence over missle movement.
@@ -93,19 +162,37 @@ void assign_ships(game_t *game, int player_num, const char *ship_str) {
  * <shooter_id>-<target_x>;<target_y>
  */
 
-void update(game_t *game, const char *p1_orders, const char *p2_orders) {
-  assert(game != NULL && p1_orders != NULL && p2_orders != NULL);
+void carry_out_orders(game_t *game, const char *orders) {
+  assert(game != NULL && orders != NULL);
+
   int status = 3;
-  // P1 move orders
+  // move orders
   while (status == 3) {
     int id = 0, new_x = 0, new_y = 0;
-    status = sscanf(p1_orders, "%d:%d;%d", &id, &new_x, &new_y);
+    status = sscanf(orders, "%d:%d;%d", &id, &new_x, &new_y);
     ship_t *ship = ehm_get(game->ehm, id);
     assert(ship != NULL);
     if (game->grid[new_x][new_y].ship != NULL) continue;
     ship->pos->ship = NULL;
     game->grid[new_x][new_y].ship = ship;
   }
+
+  // missle create orders
+  status = 3;
+  while (status == 3) {
+    int target_id = 0, target_x = 0, target_y = 0;
+    status = sscanf(orders, "%d-%d;%d", &target_id, &target_x, &target_y);
+    add_missle(game, target_id, target_x, target_y);
+  }
+}
+
+void update(game_t *game, const char *p1_orders, const char *p2_orders) {
+  assert(game != NULL && p1_orders != NULL && p2_orders != NULL);
+  carry_out_orders(game, p1_orders);
+  carry_out_orders(game, p2_orders);
+
+  // Move missles (new created missles can be moved too as
+  // they moved 1 tile in all directions at most)
 }
 
 /*

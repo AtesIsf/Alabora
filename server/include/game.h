@@ -35,6 +35,8 @@ struct missle;
 typedef struct grid {
   struct ship *ship;
   struct missle *missle;
+  int x;
+  int y;
   int depth;
 } grid_t;
 
@@ -52,7 +54,7 @@ typedef struct missle {
 } missle_t;
 
 typedef struct missle_node {
-  missle_t missle;
+  missle_t *missle;
   struct missle_node *next;
   struct missle_node *prev;
 } missle_node_t;
@@ -81,6 +83,12 @@ typedef struct game {
 game_t init_game();
 
 void assign_ships(game_t *, int, const char *);
+
+void missle_free(game_t *, missle_t *);
+
+void add_missle(game_t *, int, int, int);
+
+void carry_out_orders(game_t *, const char *);
 
 void update(game_t *, const char *, const char *);
 
