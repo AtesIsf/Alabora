@@ -1,6 +1,8 @@
 #ifndef GAME_H
 #define GAME_H
 
+#include "entity_hashmap.h"
+
 #define N_PLAYERS (2)
 #define N_ROWS (100)
 #define N_COLS (100)
@@ -73,6 +75,7 @@ typedef struct game {
   player_t players[N_PLAYERS];
   grid_t grid[N_ROWS][N_COLS];
   missle_node_t *head;
+  entity_hashmap_t ehm;
 } game_t;
 
 game_t init_game();
