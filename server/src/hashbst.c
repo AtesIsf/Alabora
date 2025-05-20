@@ -26,6 +26,7 @@ hashbst_node_t *generate_hashbst() {
   insert_hashbst_node(&head, "/help", handle_help);
   insert_hashbst_node(&head, "/pagenotfound", handle_page_not_found);
   insert_hashbst_node(&head, "/styles.css", handle_styles);
+  insert_hashbst_node(&head, "/", handle_home);
 
   return head;
 }
