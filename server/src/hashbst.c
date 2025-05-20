@@ -161,6 +161,7 @@ char *handle_styles(http_request_t *req) {
 }
 
 /* The request MUST come with the player_id cookie!!! */
+/* TODO: Add extra measure to ensure authentication of player_id */
 
 char *handle_join(http_request_t *req) {
   if (strncmp(req->method, "POST", 4) != 0)

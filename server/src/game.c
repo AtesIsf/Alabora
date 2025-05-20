@@ -12,7 +12,7 @@ unsigned short global_player_ids[N_PLAYERS] = { 0 };
 
 game_t init_game() {
   srand(time(0));
-  global_id_counter = rand() % (1 << 8);
+  global_id_counter = rand() % (1 << 16);
 
   game_t g = { 0 };
   for (int i = 0; i < N_PLAYERS; i++) {
@@ -227,8 +227,10 @@ void move_missles(game_t *game) {
     int d_y = missle->target->y - curr_y;
 
     // Move
-    curr_x = d_x != 0 ? curr_x + MISSLE_MOVE_DIST : curr_x;
-    curr_y = d_y != 0 ? curr_y + MISSLE_MOVE_DIST : curr_y;
+    int mov_x = d_x > 0 ? MISSLE_MOVE_DIST : -MISSLE_MOVE_DIST;
+    int mov_y = d_y > 0 ? MISSLE_MOVE_DIST : -MISSLE_MOVE_DIST;
+    curr_x = d_x != 0 ? curr_x + mov_x : curr_x;
+    curr_y = d_y != 0 ? curr_y + mov_y : curr_y;
 
     // Check collision
     grid_t *new_pos = &game->grid[curr_x][curr_y];
