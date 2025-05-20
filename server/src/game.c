@@ -7,11 +7,15 @@
 #include <time.h>
 
 unsigned int global_id_counter = 0;
+int global_player_count = 0;
+unsigned short global_player_ids[N_PLAYERS] = { 0 };
 
 game_t init_game() {
   game_t g = { 0 };
-  g.players[0].id = global_id_counter++;
-  g.players[1].id = global_id_counter++;
+  for (int i = 0; i < N_PLAYERS; i++) {
+    g.players[i].id = global_id_counter++;
+    global_player_ids[i] = global_id_counter;
+  }
 
   srand(time(0));
 

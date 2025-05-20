@@ -13,8 +13,9 @@
 #define HTTP_INTERNAL_SERVER_ERROR (500)
 
 typedef struct http_request {
-  char method[8];
+  char cookies[128];
   char path[64];
+  char method[8];
 } http_request_t;
 
 #define EMPTY_REQ ((http_request_t) { 0 })
@@ -29,6 +30,8 @@ http_request_t parse_request(char *);
 const char *get_code_string(int *code);
 
 char *wrap_in_http(const char *, int, const char*);
+
+char *create_cookie_str(const char *, const char *, unsigned int);
 
 void handle_connection(int, game_t *, struct sockaddr*, socklen_t *, hashbst_node_t *);
 

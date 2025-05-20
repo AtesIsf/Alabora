@@ -1,5 +1,6 @@
 #include "../include/hashbst.h"
 #include "../include/connection_handler.h"
+#include "../include/game.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -8,7 +9,7 @@
 
 #define MAX_BUF_LEN (256)
 
-hashbst_node_t *create_hashbst_node(const char *path, char *(*handler)(void)) {
+hashbst_node_t *create_hashbst_node(const char *path, char *(*handler)(http_request_t *)) {
   assert(path != NULL && handler != NULL);
 
   hashbst_node_t *node = malloc(sizeof(hashbst_node_t));
@@ -26,6 +27,7 @@ hashbst_node_t *generate_hashbst() {
   insert_hashbst_node(&head, "/help", handle_help);
   insert_hashbst_node(&head, "/pagenotfound", handle_page_not_found);
   insert_hashbst_node(&head, "/styles.css", handle_styles);
+  insert_hashbst_node(&head, "/join", handle_join);
   insert_hashbst_node(&head, "/", handle_home);
 
   return head;
@@ -36,7 +38,7 @@ hashbst_node_t *generate_hashbst() {
  * if the given path matches an already existing path.
  */
 
-void insert_hashbst_node(hashbst_node_t **node, const char *path, char *(*handler)(void)) {
+void insert_hashbst_node(hashbst_node_t **node, const char *path, char *(*handler)(http_request_t *)) {
   assert(node != NULL && path != NULL && handler != NULL);
 
   if (*node == NULL) {
@@ -142,19 +144,34 @@ char *generate_http_response(const char *file_name, const char *file_type) {
   return response;
 }
 
-char *handle_home() {
+char *handle_home(http_request_t *req) {
   return generate_http_response("home", "html");
 }
 
-char *handle_help() {
+char *handle_help(http_request_t *req) {
   return generate_http_response("help", "html");
 }
 
-char *handle_page_not_found() {
+char *handle_page_not_found(http_request_t *req) {
   return generate_http_response("page_not_found", "html");
 }
 
-char *handle_styles() {
+char *handle_styles(http_request_t *req) {
   return generate_http_response("styles", "css");
+}
+
+char *handle_join(http_request_t *req) {
+  char *player_id_str = strstr(req->cookies, "player_id");
+  if (player_id_str != NULL) {
+    unsigned short id = 0;
+    sscanf(player_id_str, "player_id=%hu", &id);
+    for (int i = 0; i < N_PLAYERS; i++) 
+      if (id == global_player_ids[i])
+        return generate_http_response("join_fail", "html");
+  }
+
+  char id_str[4] = { '\0' };
+  sprintf(id_str, "%hd", global_player_ids[global_player_count++]);
+  return create_cookie_str("player_id", id_str, 300);
 }
 

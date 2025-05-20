@@ -30,6 +30,8 @@
 #define SUNK_SHIP_ID (-1)
 
 extern unsigned int global_id_counter;
+extern int global_player_count;
+extern unsigned short global_player_ids[N_PLAYERS];
 
 typedef unsigned char byte_t;
 struct ship;

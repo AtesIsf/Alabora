@@ -73,8 +73,9 @@ void init_sockets(game_t *game) {
 http_request_t parse_request(char *buf) {
   assert(buf != NULL);
   http_request_t req = { 0 };
-  int status = sscanf(buf, "%7[^/]%63[^ ]", req.method, req.path);
-  return status == 2 ? req : EMPTY_REQ;
+  sscanf(buf, "%7[^/]%63[^ ]%*[^\r]\r\n", req.method, req.path);
+  sscanf(buf, "Cookies:%127[^\r]\r\n", req.cookies);
+  return req;
 }
 
 const char *get_code_string(int *code) {
@@ -109,6 +110,22 @@ char *wrap_in_http(const char *str, int code, const char *file_type) {
   return response;
 }
 
+/* Returned string must be freed afterwards */
+
+char *create_cookie_str(const char *field, const char *value, unsigned int max_age) {
+  assert(field != NULL && value != NULL);
+  char *response = calloc(1024, 1);
+  assert(response != NULL);
+
+  sprintf(response, 
+      "HTTP/1.1 200 OK\r\n"
+      "Content-Type: text/plain\r\n"
+      "Content-length: \r\n"
+      "Set-Cookie: %s=%s, Max-Age: %d\r\n",
+      field, value, max_age);
+  return response;
+}
+
 void handle_connection(int fd, game_t *game, struct sockaddr *addr, socklen_t *len, hashbst_node_t *root) {
   assert(game != NULL && addr != NULL && len != NULL && root != NULL);
   int handler_fd = accept(fd, addr, len);
@@ -134,11 +151,11 @@ void handle_connection(int fd, game_t *game, struct sockaddr *addr, socklen_t *l
 
   http_request_t req = parse_request(buf);
   printf("%s %s\n", req.method, req.path);
-  char *(*handler)(void) = find_hashbst_node(root, req.path);
+  char *(*handler)(http_request_t *) = find_hashbst_node(root, req.path);
 
-  handler = handler == NULL ? (char *(*)(void)) find_hashbst_node(root, "/pagenotfound") : handler;
+  handler = handler == NULL ? (char *(*)(http_request_t *)) find_hashbst_node(root, "/pagenotfound") : handler;
 
-  char *response = handler();
+  char *response = handler(&req);
   SSL_write(ssl, response, strlen(response));
 
   close(handler_fd);
