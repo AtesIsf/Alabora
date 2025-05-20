@@ -94,7 +94,7 @@ const char *get_code_string(int *code) {
 
 char *wrap_in_http(const char *str, int code, const char *file_type) {
   assert(str != NULL && file_type != NULL);
-  char *response = malloc(1024);
+  char *response = calloc(1024, 1);
   assert(response != NULL);
 
   const char *code_str = get_code_string(&code);
