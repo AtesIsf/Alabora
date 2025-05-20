@@ -119,8 +119,8 @@ char *create_cookie_str(const char *field, const char *value, unsigned int max_a
 
   sprintf(response, 
       "HTTP/1.1 200 OK\r\n"
-      "Content-Type: text/plain\r\n"
-      "Content-length: \r\n"
+      "Content-Type: text/html\r\n"
+      "Content-length: 0\r\n"
       "Set-Cookie: %s=%s, Max-Age: %d\r\n",
       field, value, max_age);
   return response;

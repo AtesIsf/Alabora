@@ -170,6 +170,10 @@ char *handle_join(http_request_t *req) {
         return generate_http_response("join_fail", "html");
   }
 
+  assert(global_player_count <= N_PLAYERS);
+  if (global_player_count == N_PLAYERS)
+      return generate_http_response("join_fail", "html");
+
   char id_str[4] = { '\0' };
   sprintf(id_str, "%hd", global_player_ids[global_player_count++]);
   return create_cookie_str("player_id", id_str, 300);

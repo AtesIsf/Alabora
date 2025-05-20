@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-unsigned int global_id_counter = 0;
+unsigned int global_id_counter = 1;
 int global_player_count = 0;
 unsigned short global_player_ids[N_PLAYERS] = { 0 };
 
