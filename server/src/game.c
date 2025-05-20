@@ -12,7 +12,7 @@ unsigned short global_player_ids[N_PLAYERS] = { 0 };
 
 game_t init_game() {
   srand(time(0));
-  global_id_counter = rand() % (1 << 16);
+  global_id_counter = rand() % (1 << 12);
 
   game_t g = { 0 };
   for (int i = 0; i < N_PLAYERS; i++) {
