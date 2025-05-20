@@ -27,6 +27,13 @@ game_t init_game() {
 
   g.ehm = init_entity_hashmap();
 
+  for (int i = 0; i < N_ROWS; i++) {
+    for (int j = 0; j < N_COLS; j++) {
+      g.grid[i][j].x = i;
+      g.grid[i][j].y = j;
+    }
+  }
+
   return g;
 }
 
@@ -49,12 +56,13 @@ void assign_ships(game_t *game, int player_num, const char *ship_str) {
   game->players[index].n_ships = n_scouts + n_strikers + n_screens + n_capitals;
   game->players[index].ships = malloc(game->players[index].n_ships * sizeof(ship_t));
 
+  int player_id = game->players[index].id;
   int i = 0;
   int start_x = player_num == 1 ? 0 : N_COLS - 1 - game->players[index].n_ships; 
   int start_y = player_num == 1 ? 0 : N_ROWS - 1; 
   for (i = 0; i < n_scouts; i++) {
     game->players[index].ships[i] = (ship_t) { 
-      .id = global_id_counter++, .cooldown_left = 0,
+      .id = global_id_counter++, .cooldown_left = 0, .player_id = player_id,
       .hp = BASE_HP, .model = SCOUT, .pos = &game->grid[start_x + i][start_y]
     }; 
     game->grid[start_x + i][start_y].ship = &game->players[index].ships[i];
@@ -62,7 +70,7 @@ void assign_ships(game_t *game, int player_num, const char *ship_str) {
   int start_i = i;
   for (; i < n_strikers + start_i; i++) {
     game->players[index].ships[i] = (ship_t) { 
-      .id = global_id_counter++, .cooldown_left = BASE_COOLDOWN,
+      .id = global_id_counter++, .cooldown_left = BASE_COOLDOWN, .player_id = player_id,
       .hp = BASE_HP, .model = STRIKE, .pos = &game->grid[start_x + i][start_y]
     }; 
     game->grid[start_x + i][start_y].ship = &game->players[index].ships[i];
@@ -70,7 +78,7 @@ void assign_ships(game_t *game, int player_num, const char *ship_str) {
   start_i = i;
   for (; i < n_screens + start_i; i++) {
     game->players[index].ships[i] = (ship_t) { 
-      .id = global_id_counter++, .cooldown_left = MEDIUM(BASE_COOLDOWN),
+      .id = global_id_counter++, .cooldown_left = MEDIUM(BASE_COOLDOWN), .player_id = player_id,
       .hp = MEDIUM(BASE_HP), .model = SCREEN, .pos = &game->grid[start_x + i][start_y]
     }; 
     game->grid[start_x + i][start_y].ship = &game->players[index].ships[i];
@@ -78,18 +86,16 @@ void assign_ships(game_t *game, int player_num, const char *ship_str) {
   start_i = i;
   for (; i < n_capitals + start_i; i++) {
     game->players[index].ships[i] = (ship_t) { 
-      .id = global_id_counter++, .cooldown_left = HIGH(BASE_COOLDOWN),
+      .id = global_id_counter++, .cooldown_left = HIGH(BASE_COOLDOWN), .player_id = player_id,
       .hp = HIGH(BASE_HP), .model = CAPITAL, .pos = &game->grid[start_x + i][start_y]
     }; 
     game->grid[start_x + i][start_y].ship = &game->players[index].ships[i];
   }
+}
 
-  for (int i = 0; i < N_ROWS; i++) {
-    for (int j = 0; j < N_COLS; j++) {
-      game->grid[i][j].x = i;
-      game->grid[i][j].y = j;
-    }
-  }
+void ship_free(game_t *game, ship_t *ship) {
+  assert(game != NULL && ship != NULL);
+  // TODO
 }
 
 void missle_free(game_t *game, missle_t *missle) {
@@ -186,13 +192,53 @@ void carry_out_orders(game_t *game, const char *orders) {
   }
 }
 
+void move_missles(game_t *game) {
+  assert(game != NULL);
+
+  missle_node_t *curr = game->head;
+  while (curr != NULL) {
+    missle_t *missle = curr->missle;
+
+    int curr_x = missle->pos->x;
+    int curr_y = missle->pos->y;
+    int d_x = missle->target->x - curr_x;
+    int d_y = missle->target->y - curr_y;
+
+    // Move
+    curr_x = d_x != 0 ? curr_x + MISSLE_MOVE_DIST : curr_x;
+    curr_y = d_x != 0 ? curr_y + MISSLE_MOVE_DIST : curr_y;
+
+    // Check collision
+    grid_t *new_pos = &game->grid[curr_x][curr_y];
+    
+    // Missle collision
+    if (new_pos->missle == NULL) {
+      missle->pos->missle = NULL;
+      new_pos->missle = missle;
+    } else {
+      missle_free(game, missle);
+      missle_free(game, new_pos->missle);
+      missle = NULL;
+      return;
+    }
+
+    // Target/ship collision
+    if (new_pos == missle->target) {
+      if (new_pos->ship != NULL) ship_free(game, new_pos->ship);
+      missle_free(game, missle);
+      missle = NULL;
+    }
+
+    curr = curr->next;
+  }
+}
+
 void update(game_t *game, const char *p1_orders, const char *p2_orders) {
   assert(game != NULL && p1_orders != NULL && p2_orders != NULL);
   carry_out_orders(game, p1_orders);
   carry_out_orders(game, p2_orders);
 
-  // Move missles (new created missles can be moved too as
-  // they moved 1 tile in all directions at most)
+  move_missles(game);
 }
 
 /*
@@ -207,6 +253,8 @@ void free_game_missles(missle_node_t *node) {
   node = NULL;
   free_game_missles(next);
 }
+
+/* Assues the game instance is on the stack thus doesn't free it */
 
 void free_game(game_t *game) {
   for (int i = 0; i < N_PLAYERS; i++) {

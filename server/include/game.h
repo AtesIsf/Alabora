@@ -26,6 +26,8 @@
 #define SCREEN_PRICE (20)
 #define CAPITAL_PRICE (40)
 
+#define MISSLE_MOVE_DIST (2)
+
 extern unsigned int global_id_counter;
 
 typedef unsigned char byte_t;
@@ -63,8 +65,9 @@ typedef struct ship {
   grid_t *pos;
   ship_type_t model;
   int hp;
+  int cooldown_left;
   unsigned short id;
-  unsigned short cooldown_left;
+  unsigned short player_id;
 } ship_t;
 
 typedef struct player {
@@ -84,11 +87,15 @@ game_t init_game();
 
 void assign_ships(game_t *, int, const char *);
 
+void ship_free(game_t *game, ship_t *ship);
+
 void missle_free(game_t *, missle_t *);
 
 void add_missle(game_t *, int, int, int);
 
 void carry_out_orders(game_t *, const char *);
+
+void move_missles(game_t *game);
 
 void update(game_t *, const char *, const char *);
 
