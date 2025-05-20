@@ -87,7 +87,7 @@ game_t init_game();
 
 void assign_ships(game_t *, int, const char *);
 
-void ship_free(game_t *game, ship_t *ship);
+void hit_ship(game_t *game, ship_t *ship);
 
 void missle_free(game_t *, missle_t *);
 

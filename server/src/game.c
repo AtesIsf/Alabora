@@ -55,6 +55,7 @@ void assign_ships(game_t *game, int player_num, const char *ship_str) {
 
   game->players[index].n_ships = n_scouts + n_strikers + n_screens + n_capitals;
   game->players[index].ships = malloc(game->players[index].n_ships * sizeof(ship_t));
+  assert(game->players[index].ships != NULL);
 
   int player_id = game->players[index].id;
   int i = 0;
@@ -93,9 +94,19 @@ void assign_ships(game_t *game, int player_num, const char *ship_str) {
   }
 }
 
-void ship_free(game_t *game, ship_t *ship) {
-  assert(game != NULL && ship != NULL);
-  // TODO
+void hit_ship(game_t *game, ship_t *ship) {
+  assert(game != NULL && ship != NULL && ship->hp > 0);
+  player_t *player = ehm_get(game->ehm, ship->player_id);
+  for (int i = 0; i < player->n_ships; i++) {
+    if (player->ships[i].id == ship->id) {
+      player->ships[i].hp--;
+    }
+  }
+
+  if (ship->hp == 0) {
+    ship->pos->ship = NULL;
+    ship->pos = NULL;
+  }
 }
 
 void missle_free(game_t *game, missle_t *missle) {
@@ -224,7 +235,7 @@ void move_missles(game_t *game) {
 
     // Target/ship collision
     if (new_pos == missle->target) {
-      if (new_pos->ship != NULL) ship_free(game, new_pos->ship);
+      if (new_pos->ship != NULL) hit_ship(game, new_pos->ship);
       missle_free(game, missle);
       missle = NULL;
     }
