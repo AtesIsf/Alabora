@@ -6,18 +6,19 @@
 #include <stdlib.h>
 #include <time.h>
 
-unsigned int global_id_counter = 1;
+unsigned int global_id_counter = 0;
 int global_player_count = 0;
 unsigned short global_player_ids[N_PLAYERS] = { 0 };
 
 game_t init_game() {
+  srand(time(0));
+  global_id_counter = rand() % (1 << 16);
+
   game_t g = { 0 };
   for (int i = 0; i < N_PLAYERS; i++) {
-    g.players[i].id = global_id_counter++;
-    global_player_ids[i] = global_id_counter;
+    g.players[i].id = global_id_counter;
+    global_player_ids[i] = global_id_counter++;
   }
-
-  srand(time(0));
 
   int n_islands = rand() % (MAX_LAND - MIN_LAND) + MIN_LAND + 1;
   for (int i = 0; i < n_islands; i++) {
