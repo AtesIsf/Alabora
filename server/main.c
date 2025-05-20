@@ -1,4 +1,5 @@
 #include "./include/connection_handler.h"
+#include "./include/game.h"
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -31,11 +32,15 @@ int main(int argc, char **argv) {
     sscanf(argv[1], "%hu", &PORT);
   }
 
+  game_t game = init_game();
   printf("Initializing SSL...\n");
   init_openssl();
   printf("Initializing server...\n");
-  init_sockets();
+  init_sockets(&game);
+
   printf("\nClosing server...\n");
   SSL_CTX_free(ctx);
+  free_game(&game);
+  ctx = NULL;
   return 0;
 }

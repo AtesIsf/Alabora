@@ -1,4 +1,5 @@
 #include "../include/game.h"
+#include "../include/entity_hashmap.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -148,7 +149,7 @@ void add_missle(game_t *game, int shooter_id, int target_x, int target_y) {
   int delta_x = target_x - spawn_pos->x > 0 ? 1 : - 1;
   int delta_y = target_y - spawn_pos->y > 0 ? 1 : - 1;
   // Don't do all that computation if there has been a collision
-  if (&game->grid[spawn_pos->x + delta_x][spawn_pos->y + delta_y] != NULL) {
+  if (game->grid[spawn_pos->x + delta_x][spawn_pos->y + delta_y].missle != NULL) {
     missle_free(game, game->grid[spawn_pos->x + delta_x][spawn_pos->y + delta_y].missle);
     game->grid[spawn_pos->x + delta_x][spawn_pos->y + delta_y].missle = NULL;
     return;
@@ -222,7 +223,7 @@ void move_missles(game_t *game) {
 
     // Move
     curr_x = d_x != 0 ? curr_x + MISSLE_MOVE_DIST : curr_x;
-    curr_y = d_x != 0 ? curr_y + MISSLE_MOVE_DIST : curr_y;
+    curr_y = d_y != 0 ? curr_y + MISSLE_MOVE_DIST : curr_y;
 
     // Check collision
     grid_t *new_pos = &game->grid[curr_x][curr_y];
@@ -262,24 +263,27 @@ void update(game_t *game, const char *p1_orders, const char *p2_orders) {
  */
 
 void free_game_missles(missle_node_t *node) {
+  assert(node != NULL);
   missle_node_t *next = node->next;
   node->next = NULL;
   node->prev = NULL;
   free(node);
   node = NULL;
-  free_game_missles(next);
+  if (next != NULL) free_game_missles(next);
 }
 
 /* Assues the game instance is on the stack thus doesn't free it */
 
 void free_game(game_t *game) {
+  assert(game != NULL);
   for (int i = 0; i < N_PLAYERS; i++) {
     free(game->players[i].ships);
     game->players[i].ships = NULL;
   }
   ehm_free(game->ehm);
   game->ehm = NULL;
-  free_game_missles(game->head);
+  if (game->head != NULL)
+    free_game_missles(game->head);
   game->head = NULL;
 }
 

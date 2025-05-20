@@ -1,8 +1,8 @@
 CC = gcc
-CFLAGS = -O2 -std=c23 -Wall -Werror -lssl -lcrypto -fPIC
+CFLAGS = -O2 -std=c23 -Wall -Werror -lssl -lcrypto
 BIN_DIR = ./bin
 SRC_DIR = ./src
-OBJ = $(BIN_DIR)/connection_handler.o $(BIN_DIR)/hashbst.o $(BIN_DIR)/game.o
+OBJ = $(BIN_DIR)/connection_handler.o $(BIN_DIR)/hashbst.o $(BIN_DIR)/entity_hashmap.o $(BIN_DIR)/game.o
 
 $(BIN_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) -c -o $@ $< $(CFLAGS)

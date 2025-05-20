@@ -1,6 +1,7 @@
 #ifndef CONNECTION_HANDLERH_H
 #define CONNECTION_HANDLERH_H
 
+#include "game.h"
 #include "hashbst.h"
 
 #include <netinet/in.h>
@@ -21,7 +22,7 @@ typedef struct http_request {
 extern SSL_CTX *ctx;
 extern unsigned short PORT;
 
-void init_sockets();
+void init_sockets(game_t *);
 
 http_request_t parse_request(char *);
 
@@ -29,6 +30,6 @@ const char *get_code_string(int *code);
 
 char *wrap_in_http(const char *, int, const char*);
 
-void handle_connection(int fd, struct sockaddr*, socklen_t *, hashbst_node_t *);
+void handle_connection(int, game_t *, struct sockaddr*, socklen_t *, hashbst_node_t *);
 
 #endif

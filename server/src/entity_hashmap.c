@@ -114,6 +114,9 @@ void ehm_free(entity_hashmap_t *ehm) {
     ehm_free_helper(curr);
     curr = NULL;
   }
+  free(ehm->elements);
+  ehm->elements = NULL;
   free(ehm);
+  ehm = NULL;
 } 
 

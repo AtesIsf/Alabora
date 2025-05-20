@@ -21,7 +21,8 @@ void terminate_signal(int n) {
   terminate_program = true;
 }
 
-void init_sockets() {
+void init_sockets(game_t *game) {
+  assert(game != NULL);
   signal(SIGINT, terminate_signal);
 
   int endpoint = socket(AF_INET6, SOCK_STREAM, 0);
@@ -57,7 +58,7 @@ void init_sockets() {
   print_hashbst(root);
 
   while (!terminate_program) {
-    handle_connection(endpoint, (struct sockaddr *) &addr, (socklen_t *) &addr_size, root); 
+    handle_connection(endpoint, game, (struct sockaddr *) &addr, (socklen_t *) &addr_size, root); 
   }
   free_hashbst(&root);
   root = NULL;
@@ -77,6 +78,7 @@ http_request_t parse_request(char *buf) {
 }
 
 const char *get_code_string(int *code) {
+  assert(code != NULL);
   switch (*code) {
     case HTTP_OK: return "OK";
     case HTTP_BAD_REQUEST: return "Bad Request"; 
@@ -107,7 +109,8 @@ char *wrap_in_http(const char *str, int code, const char *file_type) {
   return response;
 }
 
-void handle_connection(int fd, struct sockaddr *addr, socklen_t *len, hashbst_node_t *root) {
+void handle_connection(int fd, game_t *game, struct sockaddr *addr, socklen_t *len, hashbst_node_t *root) {
+  assert(game != NULL && addr != NULL && len != NULL && root != NULL);
   int handler_fd = accept(fd, addr, len);
   if (handler_fd < 0) return;
 
