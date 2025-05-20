@@ -27,6 +27,7 @@
 #define CAPITAL_PRICE (40)
 
 #define MISSLE_MOVE_DIST (2)
+#define SUNK_SHIP_ID (-1)
 
 extern unsigned int global_id_counter;
 

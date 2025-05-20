@@ -104,6 +104,9 @@ void hit_ship(game_t *game, ship_t *ship) {
   }
 
   if (ship->hp == 0) {
+    ship_t *removed = ehm_remove(game->ehm, ship->id);
+    assert(removed == ship);
+    ship->id = SUNK_SHIP_ID;
     ship->pos->ship = NULL;
     ship->pos = NULL;
   }
@@ -128,6 +131,8 @@ void missle_free(game_t *game, missle_t *missle) {
   node->prev = NULL;
   node->next = NULL;
   node->missle = NULL;
+  missle_t *m = ehm_remove(game->ehm, missle->id);
+  assert(m == missle);
   free(missle);
   free(node);
   missle = NULL;
