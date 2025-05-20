@@ -160,14 +160,19 @@ char *handle_styles(http_request_t *req) {
   return generate_http_response("styles", "css");
 }
 
+/* The request MUST come with the player_id cookie!!! */
+
 char *handle_join(http_request_t *req) {
+  if (strncmp(req->method, "POST", 4) != 0)
+    return generate_http_response("page_not_found", "html"); 
+
   char *player_id_str = strstr(req->cookies, "player_id");
   if (player_id_str != NULL) {
     unsigned short id = 0;
     sscanf(player_id_str, "player_id=%hu", &id);
     for (int i = 0; i < N_PLAYERS; i++) 
       if (id == global_player_ids[i])
-        return generate_http_response("join_fail", "html");
+        return generate_http_response("already_in_game", "html");
   }
 
   assert(global_player_count <= N_PLAYERS);

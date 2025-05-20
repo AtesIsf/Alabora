@@ -74,7 +74,12 @@ http_request_t parse_request(char *buf) {
   assert(buf != NULL);
   http_request_t req = { 0 };
   sscanf(buf, "%7[^/]%63[^ ]%*[^\r]\r\n", req.method, req.path);
-  sscanf(buf, "Cookies:%127[^\r]\r\n", req.cookies);
+  
+  char *cookies = strstr(buf, "Cookie:");
+  if (cookies != NULL) {
+    sscanf(cookies, "Cookie:%127[^\r]\r\n", req.cookies);
+  }
+
   return req;
 }
 
@@ -121,7 +126,7 @@ char *create_cookie_str(const char *field, const char *value, unsigned int max_a
       "HTTP/1.1 200 OK\r\n"
       "Content-Type: text/html\r\n"
       "Content-length: 0\r\n"
-      "Set-Cookie: %s=%s, Max-Age: %d\r\n",
+      "Set-Cookie: %s=%s; Max-Age: %d\r\n",
       field, value, max_age);
   return response;
 }
@@ -150,7 +155,7 @@ void handle_connection(int fd, game_t *game, struct sockaddr *addr, socklen_t *l
   buf[bytes] = '\0';
 
   http_request_t req = parse_request(buf);
-  printf("%s %s\n", req.method, req.path);
+  printf("%s %s %s\n", req.method, req.path, req.cookies);
   char *(*handler)(http_request_t *) = find_hashbst_node(root, req.path);
 
   handler = handler == NULL ? (char *(*)(http_request_t *)) find_hashbst_node(root, "/pagenotfound") : handler;
